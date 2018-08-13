@@ -4,7 +4,7 @@ This repository seeks to compile all my knowledge about the **PIC16F628A control
 ## Goals
 These are the life goals of this repository:
  - [x] Born (08/13/2018)
- - [ ] Build a boilerplate
+ - [x] Build a boilerplate
  - [ ] Build a bunch of example codes
  - [ ] Keep my end of semester project
  - [ ] ~~Dead~~ (sounds like deprecated)
