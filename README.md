@@ -1,5 +1,5 @@
 # Hello!
-This repository seeks to compile all my knowledge about the **PIC16F628A controller**.
+This repository seeks to compile all my knowledge about the **PIC16F628A controller**. I am graduating in computer engineering, so please forgive my mistakes.
 
 ## Goals
 These are the life goals of this repository:
@@ -13,7 +13,7 @@ These are the life goals of this repository:
 
 ## Like a boilerplate
 I'm in **August / 2018** and this is my first repository in microcontrollers. You may have noticed that my files have specific characteristics, and they are:
- - **Assembly**
+ - **ASSEMBLY**
  - My *mnemonics, labels* and *functions* are written in **English**
  - But, the *comments*, they are written in **Brazilian Portuguese**
  - All the sample code and especially the final design, has **circuit diagram**
