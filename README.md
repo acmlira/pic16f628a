@@ -13,6 +13,7 @@ These are the life goals of this repository:
 
 ## Like a boilerplate
 I'm in **August / 2018** and this is my first repository in microcontrollers. You may have noticed that my files have specific characteristics, and they are:
+ - **Assembly**
  - My *mnemonics, labels* and *functions* are written in **English**
  - But, the *comments*, they are written in **Brazilian Portuguese**
  - All the sample code and especially the final design, has **circuit diagram**
