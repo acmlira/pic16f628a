@@ -1,0 +1,10 @@
+
+*.sbs
+*.mcw
+*.cof
+*.err
+*.mcs
+*.O
+*.mcp
+*.map
+*.lst
