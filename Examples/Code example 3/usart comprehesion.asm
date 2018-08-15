@@ -75,14 +75,35 @@ ExitISR:
 ; - Início do programa ------------------------------------------------------------------------------------------------------------------------------------------
 
 Start:					
-
-;                       ...
-
+                        call    ConfigUSART
+                        movlw   "A"
+                        movwf   TXREG
 Loop:					
 
 ;                       ...
 		
                         goto    Loop                                             ;Fecha laço
+					
+; - Configura USART ---------------------------------------------------------------------------------------------------------------------------------------------					
+					
+ConfigUSART:            
+                        ctb1                                                     ;Muda para banco 0 pois vamos trabalhar com TXSTA
+                        movlw   B'00100110'                                      ;Configura transmissão para modo assincrono  no high speed baud rate e com flag	                    				
+					    movwf   TXSTA                                            ;TXSTA recebe a configuração
+					                                       
+					    movlw   D'25'                                            ;Seta Baud Rate para 9600
+                        movwf   SPBRG
+                       
+					    movlw   B'11111111'                                      ;Todos os pinos como in
+					    movwf   TRISB
+					    
+					    ctb0
+					    movlw   B'10000000'
+					    movwf   RCSTA
+					    
+					    return
+					    
+; - Fim do programa ---------------------------------------------------------------------------------------------------------------------------------------------
 						
                         end                                                      ;Fim do programa
 												
