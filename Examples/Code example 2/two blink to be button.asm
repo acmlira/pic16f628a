@@ -36,8 +36,8 @@
    	
    W_TEMP                                                                       ;Variavel para salvamento de contexto
    STATUS_TEMP                                                                  ;Variável para salvamento de contexto
-   COUNTER                                                                      ;Contador auxiliar para timer 0
-   COUNTER1
+   COUNTER0                                                                     ;Contador auxiliar para timer 0
+   COUNTER1                                                                     ;Contador auxiliar para timer 1
    
    endc
 ;  - Vetor Reset ------------------------------------------------------------------------------------------------------------------------------------------------
@@ -83,7 +83,7 @@ ISR_T0:
                         bcf     INTCON, T0IF                                    ;Limpa a flag de interrupção!
                         decfsz  COUNTER, F
                         goto    Aux
-                        call    VarRst
+                        call    C0Rst
                         ctb0                                                    ;Garante que estamos no Banco 0
                         movlw   B'00100000'                                     ;Valor que vamos fazer xor (inverte o bit 5)
                         xorwf   PORTB, F                                        ;PORTB = PORTB XOR W
@@ -116,7 +116,7 @@ ISR_E:
 ; - Início do programa ------------------------------------------------------------------------------------------------------------------------------------------
 
 Start:					
-                        call    VarRst                                          ;Inicializa variáveis
+                        call    C0Rst                                           ;Inicializa contadores
                         call    C1Rst
                         call    Timer0Rst                                       ;Configura antes para não dar prob. quando habilitar interrupções
                         call    Timer1Rst
@@ -129,21 +129,21 @@ Loop:
                         nop
                         goto    Loop                                            ;Fecha laço
 
-; - 'Reseta' variáveis -----------------------------------------------------------------------------------------------------------------------------------------
+; - 'Reseta contador do timer 0 -----------------------------------------------------------------------------------------------------------------------
 
-VarRst:                 
+C0Rst:                 
                         movlw   D'20'                                           ;Valor que vamos carregar no contador auxiliar do timer 0                              
-                        movwf   COUNTER                                         ;COUNTER = W
+                        movwf   COUNTER0                                        ;COUNTER0 = W
                         return                                                  ;Retorna para contexto do programa
 
-; - 'Reset' Counter 1 ------------------------------------------------------------------------------------------------------------------------------------------
+; - 'Reseta' contador do timer 1 ----------------------------------------------------------------------------------------------------------------------
 
 C1Rst:
-                        movlw   D'5'                                           ;Valor que vamos carregar no contador auxiliar do timer 0                              
+                        movlw   D'5'                                            ;Valor que vamos carregar no contador auxiliar do timer 0                              
                         movwf   COUNTER1                                        ;COUNTER = W
                         return                                                  ;Retorna para contexto do programa
 
-; - 'Reseta' timer 0 -------------------------------------------------------------------------------------------------------------------------------------------
+; - 'Reseta' timer 0 ----------------------------------------------------------------------------------------------------------------------------------
 
 Timer0Rst:              
                         ctb0                                                    ;Garante que estamos no Banco 0
@@ -155,12 +155,12 @@ Timer0Rst:
 ; - 'Reseta' timer 1 --------------------------------------------------------------------------------------------------------------------------------------------
                        
 Timer1Rst:              
-                        ctb0
-                        movlw   H'B0'
-                        movwf   TMR1L
-                        movlw   H'3C'
-                        movwf   TMR1H
-                        return
+                        ctb0                                                    ;Muda para banco 0
+                        movlw   H'B0'                                           ;65536 - 50000 = 15536 = 3CB0h
+                        movwf   TMR1L                                           ;Move o nibble inferior para TMR1L
+                        movlw   H'3C'                                           ;W = nibble superior
+                        movwf   TMR1H                                           ;TMR1H = W
+                        return                                                  ;Retorna para contexto do programa
                         
 ; - Configura interrupções de perifericos -----------------------------------------------------------------------------------------------------------------------
 ;
@@ -168,13 +168,13 @@ Timer1Rst:
 ;
                        
 ConfigIntP:            
-                       ctb1
-                       bsf      PIE1, TMR1IE
-                       ctb0
-                       bcf      PIR1, TMR1IF
-                       movlw    B'00110001'
-                       movwf    T1CON
-                       
+                       ctb1                                                     ;Escolhe banco 1 para trabalhar com os enables de perifericos
+                       bsf      PIE1, TMR1IE                                    ;Habilita interrupção do TMR1
+                       ctb0                                                     ;Muda para banco 0
+                       bcf      PIR1, TMR1IF                                    ;Limpa a flag de interrupção para evitar qualquer problema (preciosismo)
+                       movlw    B'00110001'                                     ;Configura o TMR1:
+                       movwf    T1CON                                           ; <7,6> Não implementado <5,4> 8 de prescale <3> Oscilador interno <2> Ignore <1> clock interno <0> Inicia timer 
+                                                                                ;Tempo de um overflow = 8 * até 256 * até 256 * CY (1us) 
                        return
                         						
 ; - 'Reseta' pinos ---------------------------------------------------------------------------------------------------------------------------------------------						
@@ -193,7 +193,7 @@ PinsRst:
 						ctb0                                                    ;Muda para Banco para inicializar pinos
 					    return                                                  ;Retorna contexto para programa principal
 
-; - 'Reset' interrupções ---------------------------------------------------------------------------------------------------------------------------------------
+; - 'Reseta' interrupções --------------------------------------------------------------------------------------------------------------------------------------
 
 InterruptionsRst:       
                         ctb1                                                    ;Muda para Banco 1 para trabalhar com INTCON E OPTION

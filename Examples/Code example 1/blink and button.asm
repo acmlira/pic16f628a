@@ -5,6 +5,8 @@
 ;
 ;  MCU Utilizada: PIC16F628A (Microchip)
 ;  Clock: 4MHz (XT)
+;
+;  Projeto: Piscar led na frequencia primeiro de 0,5 Hz, se apertar o botão essa frequência deve ser aumentada drasticamente
 ;  
 
    list         p=16f628a
@@ -78,9 +80,9 @@ ISR_exit:
 			
 ISR_T0:                 
                         bcf     INTCON, T0IF                                    ;Limpa a flag de interrupção!
-                        decfsz  COUNTER, F
-                        goto    Aux
-                        call    VarRst
+                        decfsz  COUNTER, F                                      ;Decrementa contador e salva valor nele mesmo. Se for 0 pule
+                        goto    Aux                                             ;Não é 0, então não recarregue o valor inicial do contador e nem troque o sinal lógico do led 
+                        call    VarRst                                          ;Recarrega valor no contador 
                         ctb0                                                    ;Garante que estamos no Banco 0
                         movlw   B'00100000'                                     ;Valor que vamos fazer xor (inverte o bit 5)
                         xorwf   PORTB, F                                        ;PORTB = PORTB XOR W
@@ -95,7 +97,7 @@ ISR_E:
                         movlw   B'00000010'                                     ;Valor que vamos fazer xor (inverte o bit 1)
                         xorwf   OPTION_REG, F                                   ;OPTION_REG = OPTION_REG XOR W
                         ctb0                                                    ;Muda para Banco 0 (PADRÃO)
-						goto    ISR_exit
+						goto    ISR_exit                                        ;Retorna para rotina de saída de interrupção
 						
 ; - Início do programa ------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -106,8 +108,8 @@ Start:
                         call    InterruptionsRst                                ;Habilita as interrupções e o programa está pronto!
 Loop:					
                         nop                                                     ;Gasta 1 ciclo de máquina
-                        nop
-                        nop
+                        nop                                                     ;            "
+                        nop                                                     ;            "
                         goto    Loop                                            ;Fecha laço
 
 ; - 'Reseta' variáveis -----------------------------------------------------------------------------------------------------------------------------------------

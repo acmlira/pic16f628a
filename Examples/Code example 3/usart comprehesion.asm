@@ -99,7 +99,7 @@ ConfigUSART:
 					    
 					    ctb0
 					    movlw   B'10000000'
-					    movwf   RCSTA
+					    movwf   RCSTA                                            ;Enable do serial
 					    
 					    return
 					    
