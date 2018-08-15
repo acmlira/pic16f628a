@@ -66,7 +66,6 @@
 						movwf	STATUS											;STATUS = W (Pega STATUS original)
 						swapf	W_TEMP, F										;W_TEMP = W_TEMP('ZZZZ WWWW' -> B'WWWW ZZZZ')
 						swapf	W_TEMP, W										;W = W_TEMP(B'WWWW ZZZZ' -> B'ZZZZ WWWW')
-					
 						retfie													;Retorna de interrupção
 						
 ; - Início do programa ------------------------------------------------------------------------------------------------------------------------------------------
