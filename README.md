@@ -6,11 +6,11 @@ This repository seeks to compile all my knowledge about the **PIC16F628A control
 
 # Goals
 These are the life goals of this repository:
- - [x] :baby: Born (08/13/2018)
- - [x] :scroll: Build a boilerplate
- - [ ] :hammer: Build a bunch of example codes
- - [ ] :file_folder: Keep my end of semester project
- - [ ] :skull: ~~Dead~~ (sounds like deprecated)
+ - [x] Born (08/13/2018)
+ - [x] Build a boilerplate
+ - [ ] Build a bunch of example codes
+ - [ ] Keep my end of semester project
+ - [ ] :skull: (sounds like deprecated)
 
 [See more...](https://github.com/acmlira/pic16f628a/wiki)
 
@@ -26,6 +26,6 @@ I'm in **August / 2018** and this is my first repository in microcontrollers. Yo
 # Seeya!
 Follow me at [![alt text][1.1]][1] 
 
-[1.1]: https://i.imgur.com/PrfACtA.png
+[1.1]: http://i.imgur.com/wWzX9uB.png 
 
 [1]: http://www.twitter.com/acmIira
