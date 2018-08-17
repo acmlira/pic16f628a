@@ -2,7 +2,7 @@
 # Hello!
 This repository seeks to compile all my knowledge about the **PIC16F628A controller**. I am graduating in computer engineering, so please forgive my mistakes.
 
-### :warning: All information founded here has been taken from the [datasheet](https://github.com/acmlira/pic16f628a/blob/master/PIC16F628A.pdf) by [Microchip](https://www.microchip.com/).
+### All information founded here has been taken from the [datasheet](https://github.com/acmlira/pic16f628a/blob/master/PIC16F628A.pdf) by [Microchip](https://www.microchip.com/).
 
 # Goals
 These are the life goals of this repository:
