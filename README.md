@@ -16,8 +16,8 @@ I'm in **August / 2018** and this is my first repository in microcontrollers. Yo
  - **ASSEMBLY**
  - My *mnemonics, labels* and *functions* are written in **English**
  - But, the *comments*, they are written in **Brazilian Portuguese**
+ - All sample code has explanations about *hardware behavior* in the [Wiki](https://github.com/acmlira/pic16f628a/wiki) (in **Brazilian Portuguese**)
  - All the sample code and especially the final design, has **circuit diagram**
- - All sample code has explanations about *hardware behavior* in the [Wiki](https://github.com/acmlira/pic16f628a/wiki)
  - Finally, if you try to replicate projects or logics in the real world, I'll make available the **.HEX files** if you want use this to *debug* 
 
 # Seeya!
