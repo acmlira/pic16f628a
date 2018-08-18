@@ -1,11 +1,14 @@
 ;
-;  Autor: Allan César		License: CC-BY-4.0
+;    Autor: Allan César           License: CC-BY-4.0
 ;
-;  Data: Agosto/2018
+;    Data: Agosto/2018
 ;
-;  MCU Utilizada: PIC16F628A (Microchip)
-;  Clock: ?? (XT)
-;  
+;    MCU Utilizada: PIC16F628A (Microchip)
+;
+;    Clock: 4MHz (XT)
+;
+;    Projeto: enviar um "A" para serial ao pressionar um botão e responder com a letra minúscula ao enviar um CAPs pela serial
+;
 
      list        p=16f628a
 
@@ -33,12 +36,12 @@
    
 ;  - Variáveis ou GPRs ------------------------------------------------------------------------------------------------------------------------------------------
      
-     cblock      H'000C'
-   	
-     W_TEMP
-     STATUS_TEMP
+     cblock      H'0070'                                                         ;Inicia alocação de memória no endereço 70h
+   	    
+     W_TEMP                                                                      ;Auxiliar para guardar W (acumulador) antes de interrupção
+     STATUS_TEMP                                                                 ;Auxiliar para guardar STATUS antes interrupção
    
-     endc
+     endc                                                                        ;Termina alocação de memória
      
 ;  - Vetor Reset ------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -51,7 +54,7 @@
 
 ;  --- Context Saving -------------------------------------------------------------------------------------------------------------------------------------------						
 ;
-;     Salva contexto antes de ir para rotinas de interrupção e usa SWAP para não ter uma flag Z no STATUS do contexto
+;      Salva contexto antes de ir para rotinas de interrupção e usa SWAP para não ter uma flag Z no STATUS do contexto
 ;						
 						
                         movwf   W_TEMP                                           ;W_TEMP = W(B'ZZZZ WWWW')
@@ -61,22 +64,43 @@
 						
 ;  ----- Rotinas de Interrupção ---------------------------------------------------------------------------------------------------------------------------------
 
-;        ...						
+                        btfsc   INTCON, INTF
+                        goto    ISR_Interruption
+                        btfsc   PIR1, RCIF
+                        goto    ISR_Receptor					
 						
 ;  --- Get Back Context -----------------------------------------------------------------------------------------------------------------------------------------						
 						
-ExitISR:
+ISR_Exit:
                         swapf   STATUS_TEMP, W                                   ;W = STATUS_TEMP(B'YYYY XXXX' -> B'XXXX YYYY') 
                         movwf   STATUS                                           ;STATUS = W (Pega STATUS original)
                         swapf   W_TEMP, F                                        ;W_TEMP = W_TEMP('ZZZZ WWWW' -> B'WWWW ZZZZ')
                         swapf   W_TEMP, W                                        ;W = W_TEMP(B'WWWW ZZZZ' -> B'ZZZZ WWWW')
                         retfie                                                   ;Retorna de interrupção
+
+; - Interruption Service Routine de Externo ---------------------------------------------------------------------------------------------------------------------
+
+
+ISR_Interruption:
+                        bcf     INTCON, INTF
+                        movlw   "A"
+                        movwf   TXREG
+                        goto    ISR_Exit
+
+
+; - Interruption Service Routine do Receptor --------------------------------------------------------------------------------------------------------------------
+
+ISR_Receptor:           
+                        bcf     PIR1, RCIF
+                        movf    RCREG, W
+                        addlw   D'32'
+                        movwf   TXREG
+                        goto    ISR_Exit				
 						
 ; - Início do programa ------------------------------------------------------------------------------------------------------------------------------------------
 
 Start:					
-
-;                       ...
+                        call    Reset_Interruptions   
 
 Loop:					
 
@@ -84,5 +108,29 @@ Loop:
 		
                         goto    Loop                                             ;Fecha laço
 						
+; - Configura Interrupções --------------------------------------------------------------------------------------------------------------------------------------
+
+Reset_Interruptions:
+                        ctb1
+                        movlw   H'FF'
+                        movwf   TRISB
+                        movlw   D'25'
+                        movwf   SPBRG
+                        movlw   B'00100110'
+                        movwf   TXSTA
+                        ctb0
+                        movlw   B'10010000'
+                        movwf   RCSTA
+                        movlw   B'00010000'
+                        movwf   PIR1
+                        movlw   B'11010000'
+                        movwf   INTCON
+                        ctb1
+                        movlw   B'00100000'
+                        movwf   PIE1
+                        ctb0
+                        return				
+						
+						
                         end                                                      ;Fim do programa
-												
+											

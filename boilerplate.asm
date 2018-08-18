@@ -1,11 +1,14 @@
 ;
-;  Autor: Allan César		License: CC-BY-4.0
+;    Autor: Allan César		License: CC-BY-4.0
 ;
-;  Data: Agosto/2018
+;    Data: Agosto/2018
 ;
-;  MCU Utilizada: PIC16F628A (Microchip)
-;  Clock: ?? (XT)
+;    MCU Utilizada: PIC16F628A (Microchip)
+;
+;    Clock: ?? (XT)
 ;  
+;    Projeto: ??
+;
 
      list        p=16f628a
 
@@ -15,7 +18,7 @@
    
 ;  - FUSE bits --------------------------------------------------------------------------------------------------------------------------------------------------
 ;  
-;  	 Configura oscilador externo p/ RA6 e RA7, desliga Watchdog Timer, liga Power-Up Timer, liga a função Reset do pino RA5, desliga BOD, LVP desligado, Data e
+;    Configura oscilador externo p/ RA6 e RA7, desliga Watchdog Timer, liga Power-Up Timer, liga a função Reset do pino RA5, desliga BOD, LVP desligado, Data e
 ;    Code Protection desligado
 ;
 ;    Portanto RA5, RA6, RA7 -> XXX ou HIGH-Z (input)
@@ -33,12 +36,12 @@
    
 ;  - Variáveis ou GPRs ------------------------------------------------------------------------------------------------------------------------------------------
      
-     cblock      H'000C'
-   	
-     W_TEMP
-     STATUS_TEMP
+     cblock      H'0070'                                                         ;Inicia alocação de memória no endereço 70h
+   	    
+     W_TEMP                                                                      ;Auxiliar para guardar W (acumulador) antes de interrupção
+     STATUS_TEMP                                                                 ;Auxiliar para guardar STATUS antes interrupção
    
-     endc
+     endc                                                                        ;Termina alocação de memória
      
 ;  - Vetor Reset ------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -51,7 +54,7 @@
 
 ;  --- Context Saving -------------------------------------------------------------------------------------------------------------------------------------------						
 ;
-;     Salva contexto antes de ir para rotinas de interrupção e usa SWAP para não ter uma flag Z no STATUS do contexto
+;      Salva contexto antes de ir para rotinas de interrupção e usa SWAP para não ter uma flag Z no STATUS do contexto
 ;						
 						
                         movwf   W_TEMP                                           ;W_TEMP = W(B'ZZZZ WWWW')
@@ -65,7 +68,7 @@
 						
 ;  --- Get Back Context -----------------------------------------------------------------------------------------------------------------------------------------						
 						
-ExitISR:
+ISR_Exit:
                         swapf   STATUS_TEMP, W                                   ;W = STATUS_TEMP(B'YYYY XXXX' -> B'XXXX YYYY') 
                         movwf   STATUS                                           ;STATUS = W (Pega STATUS original)
                         swapf   W_TEMP, F                                        ;W_TEMP = W_TEMP('ZZZZ WWWW' -> B'WWWW ZZZZ')
@@ -75,35 +78,27 @@ ExitISR:
 ; - Início do programa ------------------------------------------------------------------------------------------------------------------------------------------
 
 Start:					
-                        call    ConfigUSART
-                        movlw   "A"
-                        movwf   TXREG
+
+;                       ...
+
+; - Rotina de loop para trabalhos contínuos ---------------------------------------------------------------------------------------------------------------------
+
 Loop:					
 
 ;                       ...
 		
                         goto    Loop                                             ;Fecha laço
-					
-; - Configura USART ---------------------------------------------------------------------------------------------------------------------------------------------					
-					
-ConfigUSART:            
-                        ctb1                                                     ;Muda para banco 0 pois vamos trabalhar com TXSTA
-                        movlw   B'00100110'                                      ;Configura transmissão para modo assincrono  no high speed baud rate e com flag	                    				
-					    movwf   TXSTA                                            ;TXSTA recebe a configuração
-					                                       
-					    movlw   D'25'                                            ;Seta Baud Rate para 9600
-                        movwf   SPBRG
-                       
-					    movlw   B'11111111'                                      ;Todos os pinos como in
-					    movwf   TRISB
-					    
-					    ctb0
-					    movlw   B'10000000'
-					    movwf   RCSTA                                            ;Enable do serial
-					    
-					    return
-					    
-; - Fim do programa ---------------------------------------------------------------------------------------------------------------------------------------------
-						
+
+; - Reset do modulo comparador ----------------------------------------------------------------------------------------------------------------------------------
+
+Reset_Comparator:                        
+                        ctb0                                                     ;Muda para banco 0 p/ trabalhar com CMCON
+                        movlw   H'0007'                                          ;Desabilita CMCON
+                        movwf   CMCON                                            ;CMCON = W
+                        return                                                   ;Retorna contextualmente para o programa
+                        
+                        
+                        
+                        
+                        						
                         end                                                      ;Fim do programa
-												
