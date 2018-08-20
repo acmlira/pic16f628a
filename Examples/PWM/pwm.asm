@@ -7,10 +7,13 @@
 ;
 ;    Clock: 4 (XT)
 ;  
-;    Projeto: 1º Criar um sinal alterável em RB1 com botão em RB0 usando Timer 2
+;    Projeto: Fazer um PWM por hardware
 ;
-;             Célculo do Timer 2: prescale x postscale x ciclo de maquina x PR2
-;                                   1:4    x     1:4   x        1E-6      x  64    =    1,024ms                        
+;             Ciclo PWM = (PR2 + 1) x Prescale do TMR2 x (4 / Fosc) x ((CCPR1L + 1) / 256) = 4ms ou 250kHz
+;                           
+;             *tudo isso quando Duty Cycle for 100% ou seja CCPR1L = 255  
+;             
+;             Botões de inc. e dec. no RB4 e no RB5, respectivamente
 ;
 
      list        p=16f628a
@@ -66,30 +69,38 @@
                         movwf   STATUS_TEMP                                      ;Salva STATUS no STATUS_TEMP
 						
 ;  ----- Rotinas de Interrupção ---------------------------------------------------------------------------------------------------------------------------------
-
-                        btfsc   INTCON, INTF
-                        goto    ISR_Int	
-                        btfsc   PIR1, TMR2IF
-                        goto    ISR_Timer2
+;       
+;        Aqui teremos um lógica de varredura utilizando o T0, novamente, isso é opcional. Por que fazer? Acho massa
+;
+                        btfss   INTCON, T0IF                                     ;O flag do timer 0 é 1?
+                        goto    ISR_Exit                                         ;Não, então sai da interrupção
+                        bcf     INTCON, T0IF                                     ;Sim, então limpa o flag
+                        movlw   D'108'                                           ;Reinicia o tempo de varredura dos botões
+                        movwf   TMR0                                             ;Coloca esse tempo no TMR0 para efetivar o reinicio 
+                        btfss   PORTB, RB4                                       ;O botão de incremento foi pressionado (está em 0) ?
+                        goto    inc_PWM                                          ;Sim, incremente o meu Duty Cycle (em porcentagem)
+                        btfss   PORTB, RB5                                       ;Não, então o de decremento foi pressionado (está em 0)?
+                        goto    dec_PWM                                          ;Sim, decremente o meu Duty Cycle (em porcentagem)
+                        goto    ISR_Exit                                         ;Não, então saia da interrupção
                         
-; - Interruption Service Routine Int ----------------------------------------------------------------------------------------------------------------------------
-
-ISR_Int:
-                        bcf     INTCON, INTF
-                        ctb1
-                        movf    PR2, W
-                        addlw   D'128'
-                        movwf   PR2
-                        ctb0
-                        goto    ISR_Exit
                         
-; - Interruption Service Routine Timer 2 ------------------------------------------------------------------------------------------------------------------------
+inc_PWM:                
+                        movlw   D'255'                                           ;Coloca o valor a ser comparado com o CCPR1L em W
+                        xorwf   CCPR1L, W                                        ;Se for igual a 255 minha operação vai gerar um Z = 1
+                        btfsc   STATUS, Z                                        ;O flag Z do STATUS está em 0?
+                        goto    ISR_Exit                                         ;Não, então desvie para saída 
+                        incf    CCPR1L, F                                        ;Sim então pode incrementar (não chegou ao máximo)
+                        goto    ISR_Exit                                         ;Saia da interrupção
+                        
+                        
+dec_PWM:                
+                        movlw   D'0'                                             ;Coloca o valor a ser comparado com o CCPR1L em W
+                        xorwf   CCPR1L, W                                        ;Se for igual a 0 minha operação vai gerar um Z = 1
+                        btfsc   STATUS, Z                                        ;O flag Z do STATUS está em 0?
+                        goto    ISR_Exit                                         ;Não, então desvie para saída
+                        decf    CCPR1L, F                                        ;Sim então pode decrementar (não chegou ao mínimo)
+                        goto    ISR_Exit                                         ;Saia da interrupção
 
-ISR_Timer2:     
-                        bcf     PIR1, TMR2IF
-                        comf    PORTB
-                        goto    ISR_Exit				
-						
 ;  --- Get Back Context -----------------------------------------------------------------------------------------------------------------------------------------						
 						
 ISR_Exit:
@@ -104,54 +115,27 @@ ISR_Exit:
 ; - Início do programa ------------------------------------------------------------------------------------------------------------------------------------------
 
 Start:					
-                        call    Reset_Interruptions
-                        call    Reset_Timer2
-                        ctb1   
-                        movlw   B'11111101'
-                        movwf   TRISB
-                        ctb0
-                        bcf     PORTB, RB1
-                        
-;                       ...
+                        ctb1                                                     ;Muda para banco 0
+                        movlw   B'01010110'                                      ;Como queremos fazer um PWM alterável: ativamos os pull-ups do PORTB, incrementamos com clock interno
+                        movwf   OPTION_REG                                       ;                                      usamos prescale 1:128 no timer 0
+                        movlw   B'11110111'                                      ;OBRIGATÓRIO: configuramos o pino do PWM como OUT
+                        movwf   TRISB                                            ;TRISB = W
+                        movlw   D'249'                                           ;Colocamos o ciclo PWM para 4ms ou 250kHz
+                        movwf   PR2                                              ;Lembrando: PWM = (PR2 + 1) x Prescale do TMR2 x (4 / Fosc) x ((CCPR1L + 1) / 256) = 4ms ou 250kHz
+                                                                                 ;tudo isso quando Duty Cycle for 100% ou seja CCPR1L = 255
+                        ctb0                                                     ;Muda para banco 1
+                        movlw   B'00000111'                                      ;Desativa comparador
+                        movwf   CMCON                                            ;CMCON = W
+                        movlw   H'A0'                                            ;Habilita interrupção geral e do Timer 0
+                        movwf   INTCON                                           ;Isso tudo é opcional, faremos a varredura para ajuste fino do PWM   
+                        movlw   B'00000110'                                      ;Habilita Timer 2 com prescale máximo 1:16
+                        movwf   T2CON                                            ;Timer 2 é OBRIGATÓRIO 
+                        clrf    CCPR1L                                           ;Configuro para começar com Duty Cycle em 0% ou seja Ciclo PWM = 0 ms ou Hz
+                        movlw   H'0C'                                            ;Habilito o modo PWM (000011xx)
+                        movwf   CCP1CON                                          ;TUDO PRONTO
 
 ; - Rotina de loop para trabalhos contínuos ---------------------------------------------------------------------------------------------------------------------
-
-Loop:					
-
-;                       ...
 		
-                        goto    Loop                                             ;Fecha laço
-
-; - Reset do modulo comparador ----------------------------------------------------------------------------------------------------------------------------------
-
-Reset_Comparator:                        
-                        ctb0                                                     ;Muda para banco 0 p/ trabalhar com CMCON
-                        movlw   H'0007'                                          ;Desabilita CMCON
-                        movwf   CMCON                                            ;CMCON = W
-                        return                                                   ;Retorna contextualmente para o programa
-                        
-; - Reset das Interrupções --------------------------------------------------------------------------------------------------------------------------------------                        
-
-Reset_Interruptions:
-                        ctb1
-                        bsf     PIE1, TMR2IE
-                        ctb0
-                        movlw   B'11010000'
-                        movwf   INTCON
-                        return
-
-; - Reset do Timer 2 --------------------------------------------------------------------------------------------------------------------------------------------
-
-Reset_Timer2:
-                        ctb1
-                        movlw   D'64'
-                        movwf   PR2
-                        ctb0
-                        movlw   B'00100101'
-                        movwf   T2CON
-                        clrf    TMR2
-                        return                        
-                        
-                        
-                        						
+                        goto    $                                                ;Fecha laço
+               						
                         end                                                      ;Fim do programa
