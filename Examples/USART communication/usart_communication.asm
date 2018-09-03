@@ -64,10 +64,10 @@
 						
 ;  ----- Rotinas de Interrupção ---------------------------------------------------------------------------------------------------------------------------------
 
-                        btfsc   INTCON, INTF
-                        goto    ISR_Interruption
-                        btfsc   PIR1, RCIF
-                        goto    ISR_Receptor					
+                        btfsc   INTCON, INTF                                     ;A interrupção foi externa?
+                        goto    ISR_Interruption                                 ;Sim, então trate
+                        btfsc   PIR1, RCIF                                       ;Não, então foi de recepção?
+                        goto    ISR_Receptor					                 ;Sim, então trate
 						
 ;  --- Get Back Context -----------------------------------------------------------------------------------------------------------------------------------------						
 						
@@ -82,25 +82,25 @@ ISR_Exit:
 
 
 ISR_Interruption:
-                        bcf     INTCON, INTF
-                        movlw   "A"
-                        movwf   TXREG
-                        goto    ISR_Exit
+                        bcf     INTCON, INTF                                     ;Limpa flag da interrupção externa
+                        movlw   "A"                                              ;Coloca o char "A" no W
+                        movwf   TXREG                                            ;Envia o W
+                        goto    ISR_Exit                                         ;Vai para rotina de saída da interrupção
 
 
 ; - Interruption Service Routine do Receptor --------------------------------------------------------------------------------------------------------------------
 
 ISR_Receptor:           
-                        bcf     PIR1, RCIF
-                        movf    RCREG, W
-                        addlw   D'32'
-                        movwf   TXREG
+                        bcf     PIR1, RCIF                                       ;Limpa flag da interrupção de recepção USART
+                        movf    RCREG, W                                         ;Tira o dado recebido do RCREG e move para W
+                        addlw   D'32'                                            ;Addiciona 32 ao W que tinha o ASCII maiúsculo 
+                        movwf   TXREG                                            ;Sai da rotina de interrupção
                         goto    ISR_Exit				
 						
 ; - Início do programa ------------------------------------------------------------------------------------------------------------------------------------------
 
 Start:					
-                        call    Reset_Interruptions   
+                        call    Config_Interruptions                             ;Configura interrupções (mal encapsulado)
 
 Loop:					
 
@@ -110,26 +110,26 @@ Loop:
 						
 ; - Configura Interrupções --------------------------------------------------------------------------------------------------------------------------------------
 
-Reset_Interruptions:
-                        ctb1
-                        movlw   H'FF'
-                        movwf   TRISB
-                        movlw   D'25'
-                        movwf   SPBRG
-                        movlw   B'00100110'
-                        movwf   TXSTA
-                        ctb0
-                        movlw   B'10010000'
-                        movwf   RCSTA
-                        movlw   B'00010000'
-                        movwf   PIR1
-                        movlw   B'11010000'
-                        movwf   INTCON
-                        ctb1
-                        movlw   B'00100000'
-                        movwf   PIE1
-                        ctb0
-                        return				
+Config_Interruptions:
+                        ctb1                                                     ;Muda para banco 1
+                        movlw   H'FF'                                            ;W = H'FF'
+                        movwf   TRISB                                            ;TRISB = W
+                        movlw   D'25'                                            ;BR = Fosc / 16(SPBRG + 1)
+                        movwf   SPBRG                                            ;SPBRG = 25 logo BR ~= 9600
+                        movlw   B'00100110'                                      ;Don't care (Assincrono), 8 bits, transmissão ligada, modo assincrono, unused, High Speed, TSR está vazio, dont'care   
+                        movwf   TXSTA                                            ;          0                 0              1                0            0         1             1             0       
+                        ctb0                                                     ;Muda para banco 0
+                        movlw   B'10010000'                                      ;Habilita serial, recp. 8 bits, don'care(Assincrono), recepção contínua, dont'care (8 bits), o resto é flag e fica zerado 
+                        movwf   RCSTA                                            ;       1               0                0                    1                   0                   000     
+                        movlw   B'00010000'                                      ;Digo que ainda não há transmissão (preciosismo)
+                        movwf   PIR1                                             ;
+                        movlw   B'11010000'                                      ;Habilito interrupções e interrupções dos perifericos e externa
+                        movwf   INTCON                                           ;
+                        ctb1                                                     ;Muda para banco 1
+                        movlw   B'00100000'                                      ;Começa a permitir interrupções de recepção
+                        movwf   PIE1                                             ;
+                        ctb0                                                     ;Muda para banco 0
+                        return				                                     ;Volta para rotina principal
 						
 						
                         end                                                      ;Fim do programa

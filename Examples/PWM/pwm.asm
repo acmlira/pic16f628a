@@ -46,6 +46,7 @@
    	    
      W_TEMP                                                                      ;Auxiliar para guardar W (acumulador) antes de interrupção
      STATUS_TEMP                                                                 ;Auxiliar para guardar STATUS antes interrupção
+     DUTY                                                                        ;Variável para controle do refinado do duty cycle 
      
      endc                                                                        ;Termina alocação de memória
      
@@ -86,13 +87,12 @@
                         
 inc_PWM:                
                         movlw   D'255'                                           ;Coloca o valor a ser comparado com o CCPR1L em W
-                        xorwf   CCPR1L, W                                        ;Se for igual a 255 minha operação vai gerar um Z = 1
+                        xorwf   CCPR1L, W                                        ;Se for igual a 200 minha operação vai gerar um Z = 1
                         btfsc   STATUS, Z                                        ;O flag Z do STATUS está em 0?
                         goto    ISR_Exit                                         ;Não, então desvie para saída 
                         incf    CCPR1L, F                                        ;Sim então pode incrementar (não chegou ao máximo)
                         goto    ISR_Exit                                         ;Saia da interrupção
-                        
-                        
+
 dec_PWM:                
                         movlw   D'0'                                             ;Coloca o valor a ser comparado com o CCPR1L em W
                         xorwf   CCPR1L, W                                        ;Se for igual a 0 minha operação vai gerar um Z = 1
@@ -130,7 +130,8 @@ Start:
                         movwf   INTCON                                           ;Isso tudo é opcional, faremos a varredura para ajuste fino do PWM   
                         movlw   B'00000110'                                      ;Habilita Timer 2 com prescale máximo 1:16
                         movwf   T2CON                                            ;Timer 2 é OBRIGATÓRIO 
-                        clrf    CCPR1L                                           ;Configuro para começar com Duty Cycle em 0% ou seja Ciclo PWM = 0 ms ou Hz
+                        clrf    DUTY                                             ;Configuro para começar com Duty Cycle em 0% ou seja Ciclo PWM = 0 ms ou Hz
+                        clrf    CCPR1L                                           ;                  "
                         movlw   H'0C'                                            ;Habilito o modo PWM (000011xx)
                         movwf   CCP1CON                                          ;TUDO PRONTO
 

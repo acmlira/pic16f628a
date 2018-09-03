@@ -5,7 +5,7 @@
 ;
 ;    MCU Utilizada: PIC16F628A (Microchip)
 ;
-;    Clock: 4MHz (XT)
+;    Clock: ?? (XT)
 ;  
 ;    Projeto: ??
 ;
@@ -56,7 +56,7 @@
 ;
 ;      Salva contexto antes de ir para rotinas de interrupção e usa SWAP para não ter uma flag Z no STATUS do contexto
 ;						
-						
+					
                         movwf   W_TEMP                                           ;W_TEMP = W(B'ZZZZ WWWW')
                         swapf   STATUS,W                                         ;W = STATUS(B'XXXX YYYY' -> B'YYYY XXXX') 
                         ctb0                                                     ;Muda para banco 0 para
@@ -64,11 +64,7 @@
 						
 ;  ----- Rotinas de Interrupção ---------------------------------------------------------------------------------------------------------------------------------
 
-                        bcf     PIR1, CMIF
-                        bsf     PORTB, 7
-                        btfss   CMCON, C2OUT
-                        bcf     PORTB, 7
-                        goto    ISR_Exit			
+;        ...						
 						
 ;  --- Get Back Context -----------------------------------------------------------------------------------------------------------------------------------------						
 						
@@ -82,21 +78,7 @@ ISR_Exit:
 ; - Início do programa ------------------------------------------------------------------------------------------------------------------------------------------
 
 Start:					
-                        ctb1
-                        bsf     TRISA, RA1
-                        bsf     TRISA, RA2
-                        bcf     TRISB, RB7
-                        movlw   B'10001000'
-                        movwf   VRCON
-                        movlw   B'01000000'
-                        movwf   PIE1
-                        
-                        ctb0
-                        movlw   B'00101010'
-                        movwf   CMCON
-                        
-                        movlw   B'11000000'
-                        movwf   INTCON
+
 ;                       ...
 
 ; - Rotina de loop para trabalhos contínuos ---------------------------------------------------------------------------------------------------------------------
@@ -109,7 +91,7 @@ Loop:
 
 ; - Reset do modulo comparador ----------------------------------------------------------------------------------------------------------------------------------
 
-Reset_Comparator:                        
+Config_Comparator:                        
                         ctb0                                                     ;Muda para banco 0 p/ trabalhar com CMCON
                         movlw   H'0007'                                          ;Desabilita CMCON
                         movwf   CMCON                                            ;CMCON = W
