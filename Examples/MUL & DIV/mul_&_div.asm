@@ -127,7 +127,7 @@ Loop_Div:
                         movf    B0,W                                             ;W = B0
                         subwf   A0,F                                             ;A0 = W - A0 = B0 - A0
                         btfss   STATUS,C                                         ;Testa para ver se houve carry
-                        goto    Inc_Quotient                                     ;Não, então o dividendo é menor que zero, adiciona 1 ao quociente
+                        goto    Inc_Quotient                                     ;Não, então o dividendo é menor que zero, adiciona 1 ao quociente e sai
                         incf    C0,F                                             ;Sim, já que o dividendo é maior que zero, incrementa o quociente
                         goto    Loop_Div                                         ;Retorna para novo ciclo de subtração
 Inc_Quotient:
