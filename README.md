@@ -17,13 +17,13 @@ These are the life goals of this repository:
 [See more...](https://github.com/acmlira/pic16f628a/wiki)
 
 # Like a boilerplate
-I'm in **August / 2018** and this is my first repository in microcontrollers. You may have noticed that my files have specific characteristics, and they are:
+I'm in **August / 2018** and this is my first repository about microcontrollers. You may have noticed that my files have specific characteristics, and they are:
  - **ASSEMBLY**
  - My *mnemonics, labels* and *functions* are written in **English**
  - But, the *comments*, they are written in **Brazilian Portuguese**
  - All sample code has explanations about *hardware behavior* in the [Wiki](https://github.com/acmlira/pic16f628a/wiki) (in **Brazilian Portuguese**)
  - All the sample code and especially the final design, has **circuit diagram**
- - Finally, if you try to replicate projects or logics in the real world, I'll make available the **.HEX files** if you want use that to *debug* 
+ - Finally, if you try to replicate projects or logics in the real world, I'll make available the **.HEX files** if you want use that to *debug*
 
 # Seeya!
 Follow me at [![alt text][1.1]][1] 
