@@ -10,7 +10,8 @@ Hi! I'm [Allan](https://github.com/acmlira) This repository compile all my knowl
 These are the life goals of this repository:
  - [x] Born (08/13/2018)
  - [x] Build a boilerplate
- - [ ] Build a bunch of example codes
+ - [x] Build a bunch of example codes
+ - [ ] Real project challenge :moyai: 
  - [ ] Refactor and code improvements :triumph:
  - [ ] :skull: (sounds like deprecated)
 
